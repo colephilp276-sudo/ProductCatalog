@@ -1,25 +1,30 @@
 version: 2.1
 
-orbs:
-  android: circleci/android@2.3.0
-
-workflows:
-  build_and_test:
-    jobs:
-      - android/test
-
 jobs:
-  android/test:
+  build:
     docker:
       - image: cimg/android:2022.09
+
+    working_directory: ~/repo
+
     steps:
       - checkout
+
       - run:
-          name: Fix Gradle permissions
+          name: Grant Gradle execute permission
           command: chmod +x ./gradlew
+
       - run:
           name: Download dependencies
           command: ./gradlew androidDependencies
+
       - run:
           name: Run unit tests
           command: ./gradlew test
+
+
+workflows:
+  version: 2.1
+  build_and_test:
+    jobs:
+      - build
