@@ -1,36 +1,25 @@
-version: 2
+version: 2.1
 
 orbs:
   android: circleci/android@2.3.0
 
-jobs:
-  build:
-    executor:
-      name: android/android-machine
-      resource-class: medium
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          keys:
-            - gradle-{{ checksum "build.gradle" }}
-            - gradle-
-
-      - run:
-          name: Download Gradle dependencies
-          command: ./gradlew dependencies || true
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: gradle-{{ checksum "build.gradle" }}
-
-      - run:
-          name: Run unit tests
-          command: ./gradlew test --stacktrace
-
 workflows:
   build_and_test:
     jobs:
-      - build
+      - android/test
+
+jobs:
+  android/test:
+    docker:
+      - image: cimg/android:2022.09
+    steps:
+      - checkout
+      - run:
+          name: Fix Gradle permissions
+          command: chmod +x ./gradlew
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+      - run:
+          name: Run unit tests
+          command: ./gradlew test
